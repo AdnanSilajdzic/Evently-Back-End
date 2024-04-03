@@ -1,0 +1,6 @@
+@EventlyBackEnd_HostAddress = http://localhost:5159
+
+GET {{EventlyBackEnd_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
