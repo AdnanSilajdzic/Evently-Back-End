@@ -1,13 +1,16 @@
 using EventlyBackEnd.Models;
 using Microsoft.EntityFrameworkCore;
+using dotenv.net;
+DotEnv.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+var connection = Environment.GetEnvironmentVariable("AzureSqlServerConnection");
 
 builder.Services.AddControllers();
-builder.Services.AddDbContext<EventlyDbContext>(opt=>
-    opt.UseInMemoryDatabase("Evently"));
+builder.Services.AddDbContext<EventlyDbContext>(options =>
+    options.UseSqlServer(connection));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
