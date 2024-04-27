@@ -2,9 +2,9 @@
 using Microsoft.Extensions.Hosting;
 using System.Globalization;
 
-namespace EventlyBackEnd.Models
+namespace EventlyBackEnd.Models.Entities
 {
-    public class EventlyDbContext: DbContext
+    public class EventlyDbContext : DbContext
     {
         public EventlyDbContext(DbContextOptions<EventlyDbContext> options)
        : base(options)

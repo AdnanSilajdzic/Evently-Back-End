@@ -5,7 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using EventlyBackEnd.Models;
+using EventlyBackEnd.Functions;
+using EventlyBackEnd.Models.Entities;
+using EventlyBackEnd.Models.DTOs;
+using AutoMapper;
 
 namespace EventlyBackEnd.Controllers
 {
@@ -13,10 +16,14 @@ namespace EventlyBackEnd.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
+        private readonly IMapper _mapper;
         private readonly EventlyDbContext _context;
+        private Authenticate _Authenticate;
 
-        public UsersController(EventlyDbContext context)
+        public UsersController(EventlyDbContext context, IMapper mapper)
         {
+            _mapper = mapper;
+            _Authenticate = new Authenticate();
             _context = context;
         }
 
@@ -41,52 +48,54 @@ namespace EventlyBackEnd.Controllers
             return user;
         }
 
-        // PUT: api/Users/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(long id, User user)
-        {
-            if (id != user.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(user).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        [HttpPut]
+        public async Task<ActionResult<UserWithToken>> PostUser(UserDTO userDto)
         {
+            // Map UserDTO to User entity
+            var user = _mapper.Map<User>(userDto);
+            // Hash the password
+            string hashedPassword = _Authenticate.HashPassword(user.Password);
+
+            // Replace the user's plain text password with the hashed one
+            user.Password = hashedPassword;
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+            string jwtToken = _Authenticate.GenerateJwtToken(user.Id, user.Email, Environment.GetEnvironmentVariable("SecretKey"));
+            return new UserWithToken { User = user, Token = jwtToken };
+        }
 
-            return CreatedAtAction("GetUser", new { id = user.Id }, user);
+        // POST: api/auth/login
+        [HttpPost("login")]
+        public async Task<ActionResult<string>> Login(UserLoginDTO loginModel)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginModel.Email);
+
+            if (user == null || !_Authenticate.VerifyPassword(loginModel.Password, user.Password))
+            {
+                // Invalid username or password
+                return Unauthorized();
+            }
+
+            string jwtToken = _Authenticate.GenerateJwtToken(user.Id, user.Email, Environment.GetEnvironmentVariable("SecretKey"));
+            return Ok(new { user, Token = jwtToken });
         }
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(long id)
+        public async Task<IActionResult> DeleteUser(long id, [FromHeader(Name = "Authorization")] string authorizationHeader)
         {
+            // Extract and verify JWT token
+            string token = authorizationHeader?.Split(' ').Last();
+            if (string.IsNullOrEmpty(token) || !_Authenticate.VerifyJwtToken(token, Environment.GetEnvironmentVariable("SecretKey")))
+            {
+                // Invalid or missing token
+                return Unauthorized();
+            }
+
+            // Token is valid, continue with delete operation
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {

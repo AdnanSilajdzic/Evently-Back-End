@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 
-namespace EventlyBackEnd.Models
+namespace EventlyBackEnd.Models.Entities
 {
     public class Event
     {
