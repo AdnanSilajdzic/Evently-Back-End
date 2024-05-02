@@ -22,9 +22,9 @@ namespace EventlyBackEnd.Models.Entities
                 .HasKey(u => u.EventId);
 
             modelBuilder.Entity<Event>()
-                .HasOne(e => e.User)
+                .HasOne(e => e.Creator)
                 .WithMany(e => e.CreatedEvents)
-                .HasForeignKey(e => e.UserId);
+                .HasForeignKey(e => e.CreatorId);
         }
     }
 }

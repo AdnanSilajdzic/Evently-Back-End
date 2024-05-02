@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EventlyBackEnd.Migrations
 {
     [DbContext(typeof(EventlyDbContext))]
-    [Migration("20240403143341_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20240502121857_NewMigration")]
+    partial class NewMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace EventlyBackEnd.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("EventlyBackEnd.Models.Event", b =>
+            modelBuilder.Entity("EventlyBackEnd.Models.Entities.Event", b =>
                 {
                     b.Property<long>("EventId")
                         .ValueGeneratedOnAdd()
@@ -58,13 +58,16 @@ namespace EventlyBackEnd.Migrations
                     b.ToTable("Events");
                 });
 
-            modelBuilder.Entity("EventlyBackEnd.Models.User", b =>
+            modelBuilder.Entity("EventlyBackEnd.Models.Entities.User", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Location")
                         .HasColumnType("nvarchar(max)");
@@ -80,9 +83,9 @@ namespace EventlyBackEnd.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("EventlyBackEnd.Models.Event", b =>
+            modelBuilder.Entity("EventlyBackEnd.Models.Entities.Event", b =>
                 {
-                    b.HasOne("EventlyBackEnd.Models.User", "User")
+                    b.HasOne("EventlyBackEnd.Models.Entities.User", "User")
                         .WithMany("CreatedEvents")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -91,7 +94,7 @@ namespace EventlyBackEnd.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("EventlyBackEnd.Models.User", b =>
+            modelBuilder.Entity("EventlyBackEnd.Models.Entities.User", b =>
                 {
                     b.Navigation("CreatedEvents");
                 });

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EventlyBackEnd.Migrations
 {
     [DbContext(typeof(EventlyDbContext))]
-    [Migration("20240427141223_AddEmailColumn")]
-    partial class AddEmailColumn
+    [Migration("20240502124109_RenamedCreator")]
+    partial class RenamedCreator
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,6 +33,9 @@ namespace EventlyBackEnd.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("EventId"));
 
+                    b.Property<long>("CreatorId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("DateTime")
                         .HasColumnType("datetime2");
 
@@ -48,12 +51,9 @@ namespace EventlyBackEnd.Migrations
                     b.Property<string>("Type")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
                     b.HasKey("EventId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("CreatorId");
 
                     b.ToTable("Events");
                 });
@@ -85,13 +85,13 @@ namespace EventlyBackEnd.Migrations
 
             modelBuilder.Entity("EventlyBackEnd.Models.Entities.Event", b =>
                 {
-                    b.HasOne("EventlyBackEnd.Models.Entities.User", "User")
+                    b.HasOne("EventlyBackEnd.Models.Entities.User", "Creator")
                         .WithMany("CreatedEvents")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("CreatorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Creator");
                 });
 
             modelBuilder.Entity("EventlyBackEnd.Models.Entities.User", b =>

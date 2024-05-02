@@ -5,24 +5,25 @@
 namespace EventlyBackEnd.Migrations
 {
     /// <inheritdoc />
-    public partial class AddEmailColumn : Migration
+    public partial class AddedImages : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "Email",
-                table: "Users",
+                name: "ImageURL",
+                table: "Events",
                 type: "nvarchar(max)",
-                nullable: true);
+                nullable: false,
+                defaultValue: "");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Email",
-                table: "Users");
+                name: "ImageURL",
+                table: "Events");
         }
     }
 }
