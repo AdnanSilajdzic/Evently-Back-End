@@ -8,6 +8,7 @@
         public string? Password { get; set; }
         public string? Location { get; set; }
         public ICollection<Event> CreatedEvents { get; set; }
+        public ICollection<UserSavedEvent> SavedEvents { get; set; }
 
     }
 }

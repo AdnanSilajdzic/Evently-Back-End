@@ -12,6 +12,8 @@ namespace EventlyBackEnd.Models.Entities
         }
         public DbSet<User> Users { get; set; }
         public DbSet<Event> Events { get; set; }
+        public DbSet<UserSavedEvent> UserSavedEvents { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -25,6 +27,22 @@ namespace EventlyBackEnd.Models.Entities
                 .HasOne(e => e.Creator)
                 .WithMany(e => e.CreatedEvents)
                 .HasForeignKey(e => e.CreatorId);
+
+            modelBuilder.Entity<UserSavedEvent>()
+                .HasKey(use => new { use.UserId, use.EventId });
+
+            modelBuilder.Entity<UserSavedEvent>()
+                .HasOne(use => use.User)
+                .WithMany(u => u.SavedEvents)
+                .HasForeignKey(use => use.UserId)
+                .OnDelete(DeleteBehavior.Restrict); // Remove cascade delete action
+
+            modelBuilder.Entity<UserSavedEvent>()
+                .HasOne(use => use.Event)
+                .WithMany(e => e.SavedByUsers)
+                .HasForeignKey(use => use.EventId)
+                .OnDelete(DeleteBehavior.Cascade); // Keep cascade delete action for this relationship
+
         }
     }
 }

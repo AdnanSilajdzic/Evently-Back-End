@@ -13,6 +13,6 @@ namespace EventlyBackEnd.Models.Entities
         public string? Type { get; set; }
         public bool Featured { get; set; }
         public string ImageURL { get; set; }
-
+        public ICollection<UserSavedEvent> SavedByUsers { get; set; }
     }
 }

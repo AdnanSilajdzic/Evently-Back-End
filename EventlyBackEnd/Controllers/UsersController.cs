@@ -9,6 +9,8 @@ using EventlyBackEnd.Functions;
 using EventlyBackEnd.Models.Entities;
 using EventlyBackEnd.Models.DTOs;
 using AutoMapper;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace EventlyBackEnd.Controllers
 {
@@ -107,6 +109,104 @@ namespace EventlyBackEnd.Controllers
 
             return NoContent();
         }
+
+        // GET: api/Users/{userId}/Events
+        [HttpGet("~/api/Users/{userId}/Events")]
+        public async Task<ActionResult<IEnumerable<EventDTO>>> GetEventsByUser(long userId)
+        {
+            // Find the user by userId
+            var user = await _context.Users.Include(u => u.CreatedEvents).FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            // Retrieve the events associated with the user
+            var events = user.CreatedEvents;
+
+            // Map events to EventDTOs
+            var eventDTOs = _mapper.Map<IEnumerable<EventDTO>>(events);
+
+            return Ok(eventDTOs);
+        }
+
+        // POST: api/User/SaveEvent
+        [HttpPost("SaveEvent/{eventId}")]
+        public async Task<IActionResult> SaveEvent(long eventId, long userId)
+        {
+            try
+            {
+                // Find the user by user ID
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                {
+                    return NotFound("User not found");
+                }
+
+                // Find the event by event ID
+                var @event = await _context.Events.FindAsync(eventId);
+                if (@event == null)
+                {
+                    return NotFound("Event not found");
+                }
+
+                // Check if the user has already saved the event
+                var existingSavedEvent = await _context.UserSavedEvents
+                    .FirstOrDefaultAsync(use => use.UserId == userId && use.EventId == eventId);
+
+                if (existingSavedEvent != null)
+                {
+                    // If the event is already saved, delete it from the user's saved events
+                    _context.UserSavedEvents.Remove(existingSavedEvent);
+                    await _context.SaveChangesAsync();
+
+                    return Ok("Event removed from saved events");
+                }
+
+                // Save the event for the user
+                var userSavedEvent = new UserSavedEvent
+                {
+                    UserId = userId,
+                    EventId = eventId
+                };
+
+                _context.UserSavedEvents.Add(userSavedEvent);
+                await _context.SaveChangesAsync();
+
+                return Ok("Event saved successfully");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+        // GET: api/User/SavedEvents/{userId}
+        [HttpGet("SavedEvents/{userId}")]
+        public async Task<IActionResult> GetSavedEvents(long userId)
+        {
+            try
+            {
+                // Retrieve the saved events for the user
+                var savedEvents = await _context.UserSavedEvents
+                    .Where(use => use.UserId == userId)
+                    .Select(use => use.Event)
+                    .ToListAsync();
+
+                if (savedEvents == null || !savedEvents.Any())
+                {
+                    return NotFound("No saved events found for the user");
+                }
+
+                return Ok(savedEvents);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
 
         private bool UserExists(long id)
         {
