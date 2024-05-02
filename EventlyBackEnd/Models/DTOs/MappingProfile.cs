@@ -9,5 +9,9 @@ public class MappingProfile : Profile
         CreateMap<UserDTO, User>(); // Define mapping from UserDTO to User
         CreateMap<Event, EventDTO>();
         CreateMap<EventDTO, Event>();
+        CreateMap<Post, PostDTO>()
+            .PreserveReferences()
+            .ReverseMap()
+            .PreserveReferences();
     }
 }

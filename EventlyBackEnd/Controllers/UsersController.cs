@@ -207,6 +207,26 @@ namespace EventlyBackEnd.Controllers
             }
         }
 
+        // GET: api/Users/{userId}/Posts
+        [HttpGet("~/api/Users/{userId}/Posts")]
+        public async Task<ActionResult<IEnumerable<PostDTO>>> GetPostsByUser(long userId)
+        {
+            // Find the user by userId
+            var user = await _context.Users.Include(u => u.Posts).FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            // Retrieve the events associated with the user
+            var posts = user.Posts;
+
+            // Map events to EventDTOs
+            var postDTOs = _mapper.Map<IEnumerable<PostDTO>>(posts);
+
+            return Ok(postDTOs);
+        }
+
 
         private bool UserExists(long id)
         {

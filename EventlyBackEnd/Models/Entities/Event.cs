@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Build.Evaluation;
+using Microsoft.Extensions.Hosting;
 
 namespace EventlyBackEnd.Models.Entities
 {
@@ -14,5 +15,6 @@ namespace EventlyBackEnd.Models.Entities
         public bool Featured { get; set; }
         public string ImageURL { get; set; }
         public ICollection<UserSavedEvent> SavedByUsers { get; set; }
+        public ICollection<Post> Posts { get; set; }
     }
 }
