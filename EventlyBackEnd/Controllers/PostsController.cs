@@ -1,10 +1,14 @@
-﻿using AutoMapper;
+﻿using Amazon.S3.Model;
+using AutoMapper;
 using EventlyBackEnd.Functions;
 using EventlyBackEnd.Models.DTOs;
 using EventlyBackEnd.Models.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace EventlyBackEnd.Controllers
 {
@@ -15,12 +19,14 @@ namespace EventlyBackEnd.Controllers
         private readonly IMapper _mapper;
         private readonly EventlyDbContext _context;
         private Authenticate _Authenticate;
+        private readonly Backblaze image;
 
         public PostsController(EventlyDbContext context, IMapper mapper)
         {
             _mapper = mapper;
             _Authenticate = new Authenticate();
             _context = context;
+            image = new Backblaze();
         }
 
         // GET: api/Posts
@@ -44,20 +50,40 @@ namespace EventlyBackEnd.Controllers
             return post;
         }
 
+        // GET: api/Posts/Event/5
+        [HttpGet("Event/{id}")]
+        public async Task<ActionResult<IEnumerable<Post>>> GetPostByEventId(long id)
+        {
+            var posts = await _context.Posts.Where(p => p.EventId == id).ToListAsync();
+            return Ok(posts);
+        }
+
         // PUT: api/Posts
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut]
-        public async Task<ActionResult<PostDTO>> CreatePost(PostDTO newPostDTO, [FromServices] IMapper mapper)
+        [HttpPost]
+        public async Task<ActionResult<PostDTO>> CreatePost([FromForm] PostDTO newPostDTO)
         {
             // Map the PostDTO to a Post entity
-            var newPost = mapper.Map<Post>(newPostDTO);
-
+            var newPost = _mapper.Map<Post>(newPostDTO);
+            // Upload image to Backblaze B2
+            if (newPostDTO.Image != null)
+            {
+                try
+                {
+                    var imageUrl = await image.UploadImageToBackblaze(newPostDTO.Image, "posts");
+                    newPost.ImageURL = imageUrl;
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, $"Internal server error: {ex.Message}");
+                }
+            }
             // Add the new Post entity to the context and save changes
             _context.Posts.Add(newPost);
             await _context.SaveChangesAsync();
 
             // Map the created Post entity back to a PostDTO
-            var createdPostDTO = mapper.Map<PostDTO>(newPost);
+            var createdPostDTO = _mapper.Map<PostDTO>(newPost);
 
             // Return the created PostDTO
             return Ok(createdPostDTO);

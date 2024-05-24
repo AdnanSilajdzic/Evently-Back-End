@@ -50,9 +50,9 @@ namespace EventlyBackEnd.Controllers
             return user;
         }
 
-        // PUT: api/Users
+        // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut]
+        [HttpPost]
         public async Task<ActionResult<UserWithToken>> PostUser(UserDTO userDto)
         {
             // Map UserDTO to User entity
