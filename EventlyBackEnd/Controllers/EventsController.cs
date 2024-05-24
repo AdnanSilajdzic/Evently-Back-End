@@ -5,6 +5,15 @@ using EventlyBackEnd.Models.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace EventlyBackEnd.Controllers
 {
@@ -14,13 +23,15 @@ namespace EventlyBackEnd.Controllers
     {
         private readonly EventlyDbContext _context;
         private readonly IMapper _mapper;
-        private Authenticate _Authenticate;
+        private readonly Authenticate _Authenticate;
+        private readonly Backblaze image;
 
         public EventsController(EventlyDbContext context, IMapper mapper)
         {
             _mapper = mapper;
             _Authenticate = new Authenticate();
             _context = context;
+            image = new Backblaze();
         }
 
         // GET: api/Events
@@ -29,7 +40,6 @@ namespace EventlyBackEnd.Controllers
         {
             return await _context.Events.ToListAsync();
         }
-
 
         // GET: api/Event/5
         [HttpGet("{id}")]
@@ -47,16 +57,8 @@ namespace EventlyBackEnd.Controllers
 
         // POST: api/Events
         [HttpPost]
-        public async Task<ActionResult<EventDTO>> PostEvent(EventDTO newEventDTO, [FromHeader(Name = "Authorization")] string authorizationHeader)
+        public async Task<ActionResult<Event>> PostEvent([FromForm] CreateEventDTO newEventDTO)
         {
-            // Extract and verify JWT token
-            string token = authorizationHeader?.Split(' ').Last();
-            if (string.IsNullOrEmpty(token) || !_Authenticate.VerifyJwtToken(token, Environment.GetEnvironmentVariable("SecretKey")))
-            {
-                // Invalid or missing token
-                return Unauthorized();
-            }
-
             var creator = await _context.Users.FindAsync(newEventDTO.CreatorId);
             if (creator == null)
             {
@@ -69,6 +71,20 @@ namespace EventlyBackEnd.Controllers
             // Add the new event to the user's CreatedEvents collection
             creator.CreatedEvents ??= new List<Event>(); // Ensure the collection is initialized
             creator.CreatedEvents.Add(newEvent);
+
+            // Upload image to Backblaze B2
+            if (newEventDTO.Image != null)
+            {
+                try
+                {
+                    var imageUrl = await image.UploadImageToBackblaze(newEventDTO.Image, "events");
+                    newEvent.ImageURL = imageUrl;
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, $"Internal server error: {ex.Message}");
+                }
+            }
 
             _context.Events.Add(newEvent);
             await _context.SaveChangesAsync();
@@ -109,6 +125,8 @@ namespace EventlyBackEnd.Controllers
             return NoContent();
         }
 
-
-    }
+        
+           
+        }
+    
 }

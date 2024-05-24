@@ -11,6 +11,6 @@ namespace EventlyBackEnd.Models.DTOs
         public string? Location { get; set; }
         public string? Type { get; set; }
         public bool Featured { get; set; }
-        public string ImageURL { get; set; }
+        public IFormFile Image { get; set; }
     }
 }

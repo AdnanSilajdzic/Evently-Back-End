@@ -13,5 +13,7 @@ public class MappingProfile : Profile
             .PreserveReferences()
             .ReverseMap()
             .PreserveReferences();
+        CreateMap<Event, CreateEventDTO>().ReverseMap();
+        CreateMap<EventDTO, CreateEventDTO>().ReverseMap();
     }
 }
