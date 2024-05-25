@@ -3,6 +3,7 @@ using dotenv.net;
 using EventlyBackEnd.Models.Entities;
 using AutoMapper;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 
 DotEnv.Load();
 
@@ -18,12 +19,21 @@ builder.Services.AddDbContext<EventlyDbContext>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddCors(); // Make sure you call this previous to AddMvc
+builder.Services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+// Make sure you call this before calling app.UseMvc()
+
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseCors(builder => builder
+    .AllowAnyOrigin()
+    .AllowAnyMethod()
+    .AllowAnyHeader());
+    app.UseMvc();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
