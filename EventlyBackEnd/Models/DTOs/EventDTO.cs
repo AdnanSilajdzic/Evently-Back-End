@@ -6,6 +6,8 @@ namespace EventlyBackEnd.Models.DTOs
     {
         public long EventId { get; set; }
         public long CreatorId { get; set; }
+        public string? Organizer { get; set; }
+
         public string? Name { get; set; }
         public DateTime DateTime { get; set; }
         public string? Location { get; set; }

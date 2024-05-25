@@ -61,7 +61,7 @@ namespace EventlyBackEnd.Controllers
         // PUT: api/Posts
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<PostDTO>> CreatePost([FromForm] PostDTO newPostDTO)
+        public async Task<ActionResult<PostDTO>> CreatePost([FromForm] CreatePostDTO newPostDTO)
         {
             // Map the PostDTO to a Post entity
             var newPost = _mapper.Map<Post>(newPostDTO);
