@@ -9,6 +9,7 @@ namespace EventlyBackEnd.Models.Entities
         public long CreatorId { get; set; }
         public User Creator { get; set; }
         public string? Name { get; set; }
+        public string? Organizer { get; set; }
         public DateTime DateTime { get; set; }
         public string? Location { get; set; }
         public string? Type { get; set; }
