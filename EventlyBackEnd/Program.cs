@@ -33,7 +33,6 @@ if (app.Environment.IsDevelopment())
     .AllowAnyOrigin()
     .AllowAnyMethod()
     .AllowAnyHeader());
-    app.UseMvc();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
